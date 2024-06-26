@@ -1,0 +1,41 @@
+# Import the 'Flask' class from the 'flask' library.
+from flask import Flask
+#We can access the environment variables from the .env file through load_env()
+from dotenv import load_dotenv
+import os
+import psycopg2, psycopg2.extras
+
+def get_db_connection():
+    connection = psycopg2.connect(
+    #    host='127.0.0.1',
+       database='pets_db',
+    #    user=os.environ['POSTGRES_USER'],
+    #    password=os.environ['POSTGRES_PASSWORD']
+    )
+    return connection
+
+
+load_dotenv()
+# Initialize Flask
+# We'll use the pre-defined global '__name__' variable to tell Flask where it is.
+app = Flask(__name__)
+
+# Define our route
+# This syntax is using a Python decorator, which is essentially a succinct way to wrap a function in another function.
+@app.route('/')
+def home():
+  return "Hello, world!"
+
+#Here, at this URL Endpoint we are executing the function that creates the connection to our PostgreSQL Database and we execute a SELECT query from the pets Table
+@app.route("/pets")
+def index():
+   connection = get_db_connection()
+   #Here, we can modify our connection.cursor() with a cursor_factory option, so we can define the format of our query results --> Here, we are defining a JSON format for our query results
+   cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+   cursor.execute("SELECT * FROM pets;")
+   pets = cursor.fetchall()
+   connection.close()
+   return pets
+
+# Run our application, by default on port 5000 --> We can change the port by assigning it inside the app.run() method with "port=<number>"
+app.run(port=3000)
