@@ -89,6 +89,26 @@ def delete_pet(pet_id):
        return jsonify({"message": F"Pet with id = {pet_id} has been deleted"}), 204
     except Exception as e:
        return jsonify({"error": str(e)}), 500
+
+@app.route("/pets/<pet_id>", methods=['PUT'])
+def update_pet(pet_id):
+    try:
+       connection = get_db_connection()
+       cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+       cursor.execute("SELECT * FROM pets WHERE id = %s", (pet_id,))
+       db_pet = cursor.fetchone()
+       if db_pet is None:
+          return jsonify({"error": F"Pet with id = {pet_id} does not exist"}), 404
+       edit_pet = request.json
+       cursor.execute("UPDATE pets SET age = %s, breed = %s, name = %s WHERE id = %s", (edit_pet["age"], edit_pet["breed"], edit_pet["name"], pet_id))
+       connection.commit()
+       cursor.close()
+       connection.close()
+       return edit_pet, 202
+    except Exception as e:
+       return jsonify({"error": str(e)}), 500
+
+
     
 # Run our application, by default on port 5000 --> We can change the port by assigning it inside the app.run() method with "port=<number>"
 app.run(port=3000)
