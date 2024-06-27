@@ -29,13 +29,17 @@ def home():
 #Here, at this URL Endpoint we are executing the function that creates the connection to our PostgreSQL Database and we execute a SELECT query from the pets Table
 @app.route("/pets")
 def index():
-   connection = get_db_connection()
-   #Here, we can modify our connection.cursor() with a cursor_factory option, so we can define the format of our query results --> Here, we are defining a JSON format for our query results
-   cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-   cursor.execute("SELECT * FROM pets;")
-   pets = cursor.fetchall()
-   connection.close()
-   return pets
+   try:
+    # raise Exception("Applicaiton Error")
+    connection = get_db_connection()
+    #Here, we can modify our connection.cursor() with a cursor_factory option, so we can define the format of our query results --> Here, we are defining a JSON format for our query results
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cursor.execute("SELECT * FROM pets;")
+    pets = cursor.fetchall()
+    connection.close()
+    return pets
+   except:
+      return "Application Error", 500
 
 @app.route("/pets", methods=['POST'])
 def create_pet():
