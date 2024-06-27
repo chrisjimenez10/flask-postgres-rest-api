@@ -55,5 +55,20 @@ def create_pet():
     except Exception as e:
        return str(e), 500
 
+@app.route("/pets/<pet_id>", methods=['GET'])
+def show_pet(pet_id):
+    try:
+       connection = get_db_connection()
+       cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+       #Here, we added a comma to the value of (pet_id,) because it helps protect against SQL injection in parameterized queries
+       cursor.execute("SELECT * FROM pets WHERE id = %s", (pet_id,))
+       pet = cursor.fetchone()
+       if pet is None:
+          connection.close()
+          return "Pet Not Found", 404
+       connection.close()
+       return pet, 200
+    except Exception as e:
+       return str(e), 500
 # Run our application, by default on port 5000 --> We can change the port by assigning it inside the app.run() method with "port=<number>"
 app.run(port=3000)
