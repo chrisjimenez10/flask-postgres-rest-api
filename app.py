@@ -1,5 +1,5 @@
 # Import the 'Flask' class from the 'flask' library.
-from flask import Flask, request
+from flask import Flask, request, jsonify
 #We can access the environment variables from the .env file through load_env()
 from dotenv import load_dotenv
 import os
@@ -70,5 +70,25 @@ def show_pet(pet_id):
        return pet, 200
     except Exception as e:
        return str(e), 500
+
+@app.route("/pets/<pet_id>", methods=['DELETE'])
+def delete_pet(pet_id):
+    try:
+       connection = get_db_connection()
+       cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+       #Here, we are executing a SELECT query to find the pet in the database first - We can handle error appropriately if a pet_id passed within the incoming request is not valid
+       cursor.execute("SELECT * FROM pets WHERE id = %s", (pet_id,))
+       pet = cursor.fetchone()
+       if pet is None:
+          return jsonify({"error": F"Pet with id = {pet_id} does not exist"}), 404
+       cursor.execute("DELETE FROM pets WHERE id = %s", (pet_id,))
+       connection.commit()
+       cursor.close()
+       connection.close()
+       #Here, we can return a JSON response with the function jsonify() --> This function converts Python dictionaries into JSON format and sets the appropriate Content-Type header
+       return jsonify({"message": F"Pet with id = {pet_id} has been deleted"}), 204
+    except Exception as e:
+       return jsonify({"error": str(e)}), 500
+    
 # Run our application, by default on port 5000 --> We can change the port by assigning it inside the app.run() method with "port=<number>"
 app.run(port=3000)
