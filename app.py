@@ -39,9 +39,17 @@ def index():
 
 @app.route("/pets", methods=['POST'])
 def create_pet():
-    new_pet = request.json
-    print(new_pet)
-    return new_pet
+    try:
+        new_pet = request.json
+        connection = get_db_connection()
+        cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cursor.execute("INSERT INTO pets (name, age, breed) VALUES (%s, %s, %s) RETURNING *", (new_pet['name'], new_pet['age'], new_pet['breed']))
+        created_pet = cursor.fetchone()
+        connection.commit() #Commit changes to the database
+        connection.close()
+        return created_pet, 201
+    except Exception as e:
+       return str(e), 500
 
 # Run our application, by default on port 5000 --> We can change the port by assigning it inside the app.run() method with "port=<number>"
 app.run(port=3000)
