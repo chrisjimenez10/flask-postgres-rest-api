@@ -1,5 +1,5 @@
 # Import the 'Flask' class from the 'flask' library.
-from flask import Flask
+from flask import Flask, request
 #We can access the environment variables from the .env file through load_env()
 from dotenv import load_dotenv
 import os
@@ -36,6 +36,12 @@ def index():
    pets = cursor.fetchall()
    connection.close()
    return pets
+
+@app.route("/pets", methods=['POST'])
+def create_pet():
+    new_pet = request.json
+    print(new_pet)
+    return new_pet
 
 # Run our application, by default on port 5000 --> We can change the port by assigning it inside the app.run() method with "port=<number>"
 app.run(port=3000)
